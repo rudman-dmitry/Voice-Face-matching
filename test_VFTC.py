@@ -22,7 +22,7 @@ def load_model(model_path, input_sz_voice, input_sz_face, cfg):
 
 def main():
     # Configuration
-    model_path = 'results/final_model_epoch119.pth'
+    model_path = 'trained_VFTC_model/final_model_epoch119.pth'
     data_path = 'triplet_data/triplets_1_negatives.pickle'
     cfg = dict(input_layer_size=256, dropout=0.5, loss_fn=torch.nn.BCEWithLogitsLoss())
 

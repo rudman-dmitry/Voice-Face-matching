@@ -281,7 +281,7 @@ if __name__ == "__main__":
 
     v_embeds, v_nms, f_embeds, f_nms, triplets, triplets_train, triplets_val, triplets_test = data
 
-    results_folder = 'results'
+    results_folder = 'trained_VFTC_model'
     num_epochs = 120
     best_fnm, final_fnm, stats = train_and_evaluate(v_embeds, f_embeds, triplets_train, triplets_val, triplets_test, results_folder, num_epochs)
 

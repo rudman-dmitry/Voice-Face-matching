@@ -16,7 +16,7 @@ This project develops a system that matches voice embeddings with corresponding 
 1. **Clone the repository**:
 
     ```bash
-    git clone https://github.com/yourusername/voice-face-matching.git
+    git clone https://github.com/rudman-dmitry/voice-face-matching.git
     cd voice-face-matching
     ```
 

@@ -28,6 +28,11 @@ with open(data_file, 'rb') as file:
 # Assign the loaded data to respective variables
 v_embeds, v_nms, f_embeds, f_nms, triplets, triplets_train, triplets_val, triplets_test = data
 
+# Create mappings from indices to keys
+v_index_to_key = {i: key for i, key in enumerate(v_embeds.keys())}
+f_index_to_key = {i: key for i, key in enumerate(f_embeds.keys())}
+
+
 # Initialize projection networks with correct input dimensions
 image_projection = ProjectionNetwork(input_dim=512, hidden_dim_1=256, hidden_dim_2=128, output_dim=64, dropout=CFG['dropout'])  # Face embeddings
 voice_projection = ProjectionNetwork(input_dim=192, hidden_dim_1=164, hidden_dim_2=128, output_dim=64, dropout=CFG['dropout'])  # Voice embeddings
@@ -38,8 +43,8 @@ image_projection.load_state_dict(checkpoint['image_model_state_dict'])
 voice_projection.load_state_dict(checkpoint['voice_model_state_dict'])
 
 # Evaluation Function
-def evaluate_model(image_embeddings, voice_embeddings, triplets_test, return_metrics=False):
-    test_data = VoiceFaceDataset(voice_embeddings, image_embeddings, triplets_test, random_switch_faces=True)
+def evaluate_model(image_embeddings, voice_embeddings, triplets_test, v_index_to_key, f_index_to_key, return_metrics=False):
+    test_data = VoiceFaceDataset(voice_embeddings, image_embeddings, triplets_test, v_index_to_key, f_index_to_key, random_switch_faces=True)
     test_dataloader = DataLoader(test_data, batch_size=1, shuffle=False)
 
     use_cuda = torch.cuda.is_available()
@@ -76,4 +81,4 @@ def evaluate_model(image_embeddings, voice_embeddings, triplets_test, return_met
     print(f'Identification Accuracy: {accuracy:.2f}%')
 
 if __name__ == "__main__":
-    evaluate_model(f_embeds, v_embeds, triplets_test)
+    evaluate_model(f_embeds, v_embeds, triplets_test, v_index_to_key, f_index_to_key)

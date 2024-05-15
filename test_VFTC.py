@@ -30,12 +30,16 @@ def main():
     data = load_data(data_path)
     v_embeds, _, f_embeds, _, _, _, _, triplets_test = data
 
+    # Create mappings from indices to keys
+    v_index_to_key = {i: key for i, key in enumerate(v_embeds.keys())}
+    f_index_to_key = {i: key for i, key in enumerate(f_embeds.keys())}
+
     # Prepare test dataset and dataloader
-    test_data = VoiceFaceDataset(v_embeds, f_embeds, triplets_test, random_switch_faces=False)
+    test_data = VoiceFaceDataset(v_embeds, f_embeds, triplets_test, v_index_to_key, f_index_to_key, random_switch_faces=False)
     test_dataloader = DataLoader(test_data, batch_size=64, shuffle=False)
 
     # Load model
-    model = load_model(model_path, v_embeds.shape[1], f_embeds.shape[1], cfg)
+    model = load_model(model_path, v_embeds[list(v_embeds.keys())[0]].shape[0], f_embeds[list(f_embeds.keys())[0]].shape[0], cfg)
     if torch.cuda.is_available():
         model.cuda()
         print('Using GPU for evaluation.')

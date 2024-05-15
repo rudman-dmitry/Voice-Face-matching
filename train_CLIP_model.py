@@ -63,6 +63,10 @@ with open(data_file, 'rb') as file:
 # Assign the loaded data to respective variables
 v_embeds, v_nms, f_embeds, f_nms, triplets, triplets_train, triplets_val, triplets_test = data
 
+# Create mappings from indices to keys
+v_index_to_key = {i: key for i, key in enumerate(v_embeds.keys())}
+f_index_to_key = {i: key for i, key in enumerate(f_embeds.keys())}
+
 # Initialize projection networks with correct input dimensions
 image_projection = ProjectionNetwork(input_dim=512, hidden_dim_1=256, hidden_dim_2=128, output_dim=64, dropout=CFG['dropout'])  # Face embeddings
 voice_projection = ProjectionNetwork(input_dim=192, hidden_dim_1=164, hidden_dim_2=128, output_dim=64, dropout=CFG['dropout'])  # Voice embeddings
@@ -103,10 +107,14 @@ def train_model(image_embeddings, voice_embeddings, triplets_train, triplets_val
     if not os.path.isdir(results_folder):
         os.makedirs(results_folder)
 
-    training_data = VoiceFaceDataset(voice_embeddings, image_embeddings, triplets_train, random_switch_faces=True)
+    # Create mappings from indices to keys
+    v_index_to_key = {i: key for i, key in enumerate(voice_embeddings.keys())}
+    f_index_to_key = {i: key for i, key in enumerate(image_embeddings.keys())}
+
+    training_data = VoiceFaceDataset(voice_embeddings, image_embeddings, triplets_train, v_index_to_key, f_index_to_key, random_switch_faces=True)
     train_dataloader = DataLoader(training_data, batch_size=batch_size, shuffle=True)
 
-    validation_data = VoiceFaceDataset(voice_embeddings, image_embeddings, triplets_val, random_switch_faces=False)
+    validation_data = VoiceFaceDataset(voice_embeddings, image_embeddings, triplets_val, v_index_to_key, f_index_to_key, random_switch_faces=False)
     val_dataloader = DataLoader(validation_data, batch_size=batch_size, shuffle=False)
 
     optimizer = torch.optim.Adam(list(image_projection.parameters()) + list(voice_projection.parameters()), lr=CFG['learning_rate'])
@@ -136,7 +144,6 @@ def train_model(image_embeddings, voice_embeddings, triplets_train, triplets_val
             sim1 = cosine_similarity(voice_output, img_output1, CFG['temperature'])
             sim2 = cosine_similarity(voice_output, img_output2, CFG['temperature'])
 
-            # loss = contrastive_loss(sim1, label, CFG['margin']) + contrastive_loss(sim2, 1 - label, CFG['margin'])
             loss = 0.5 * (contrastive_loss(sim1, label, CFG['margin']) + contrastive_loss(sim2, 1 - label, CFG['margin']))
             optimizer.zero_grad()
             loss.backward()
@@ -148,7 +155,7 @@ def train_model(image_embeddings, voice_embeddings, triplets_train, triplets_val
         stats['train_loss'].append(avg_train_loss)
 
         # Evaluate on validation set
-        val_loss, val_acc = evaluate_model(image_embeddings, voice_embeddings, triplets_val, return_metrics=True)
+        val_loss, val_acc = evaluate_model(image_embeddings, voice_embeddings, triplets_val, v_index_to_key, f_index_to_key, return_metrics=True)
         stats['val_loss'].append(val_loss)
         stats['val_acc'].append(val_acc)
         print(f'Epoch {epoch+1}, Loss: {avg_train_loss:.9f}, Val Loss: {val_loss:.9f}, Val Accuracy: {val_acc:.4f}%, LR: {optimizer.param_groups[0]["lr"]:.7f}')
@@ -183,8 +190,8 @@ def train_model(image_embeddings, voice_embeddings, triplets_train, triplets_val
     plot_training_stats(stats, results_folder)
 
 # Evaluation Function
-def evaluate_model(image_embeddings, voice_embeddings, triplets_test, return_metrics=False):
-    test_data = VoiceFaceDataset(voice_embeddings, image_embeddings, triplets_test, random_switch_faces=True)
+def evaluate_model(image_embeddings, voice_embeddings, triplets_test, v_index_to_key, f_index_to_key, return_metrics=False):
+    test_data = VoiceFaceDataset(voice_embeddings, image_embeddings, triplets_test, v_index_to_key, f_index_to_key, random_switch_faces=True)
     test_dataloader = DataLoader(test_data, batch_size=1, shuffle=False)
 
     use_cuda = torch.cuda.is_available()
@@ -226,7 +233,7 @@ def count_parameters(model):
 if __name__ == "__main__":
     num_epochs = 1000
     train_model(f_embeds, v_embeds, triplets_train, triplets_val, num_epochs)
-    evaluate_model(f_embeds, v_embeds, triplets_test)
+    evaluate_model(f_embeds, v_embeds, triplets_test, v_index_to_key, f_index_to_key)
 
     head1 = ProjectionNetwork(input_dim=512, hidden_dim_1=256, hidden_dim_2=128, output_dim=64, dropout=CFG['dropout']) 
     head2 = ProjectionNetwork(input_dim=192, hidden_dim_1=164, hidden_dim_2=128, output_dim=64, dropout=CFG['dropout'])

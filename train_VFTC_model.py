@@ -112,47 +112,7 @@ def eval_model(model, loss_fn, dataloader, use_cuda):
     return loss, acc
 
 # Function to plot training stats
-def plot_training_stats(stats, results_folder):
-    plt.figure(figsize=(12, 8))
-    
-    # Plot training and validation loss
-    plt.subplot(2, 1, 1)
-    plt.plot(stats['train_loss'], label='Training Loss')
-    plt.plot(stats['val_loss'], label='Validation Loss')
-    plt.xlabel('Epoch')
-    plt.ylabel('Loss')
-    plt.title('Training and Validation Loss')
-    plt.legend()
-
-    # Plot validation accuracy
-    plt.subplot(2, 1, 2)
-    plt.plot(stats['val_acc'], label='Validation Accuracy')
-    plt.xlabel('Epoch')
-    plt.ylabel('Accuracy')
-    plt.title(f'Validation Accuracy: {stats["val_acc"][-1]:.3f}')
-    plt.legend()
-
-    plt.tight_layout()
-    plot_file = os.path.join(results_folder, 'training_stats.png')
-    plt.savefig(plot_file)
-    print(f'Training plot saved to {plot_file}')
-
-# Main function adapted for Colab
 def train_and_evaluate(v_embeds, f_embeds, triplets_train, triplets_val, triplets_test, results_folder, num_epochs):
-    """
-    Train and evaluate a Voice-Face matching model using triplets of embeddings.
-
-    Parameters:
-        v_embeds (np.ndarray): Array of voice embeddings.
-        f_embeds (np.ndarray): Array of face embeddings.
-        triplets_train, triplets_val, triplets_test (List[Tuple[int]]): Lists of triplet indices for training, validation, and testing.
-        results_folder (str): Directory path to save model outputs and results.
-        num_epochs (int): Number of epochs to train the model.
-
-    This function initializes a model, trains it on the training set, evaluates on the validation set, 
-    and tests on the test set. It handles data loading, model instantiation, training loop, 
-    evaluation, and saving the model states.
-    """
     print(f'Saving results to folder: {results_folder}')
     if not os.path.isdir(results_folder):
         os.makedirs(results_folder)
@@ -163,9 +123,13 @@ def train_and_evaluate(v_embeds, f_embeds, triplets_train, triplets_val, triplet
     cfg = CFG
     random_switch_faces = not train_over_pairs
 
-    training_data = VoiceFaceDataset(v_embeds, f_embeds, triplets_train, random_switch_faces)
-    validation_data = VoiceFaceDataset(v_embeds, f_embeds, triplets_val, random_switch_faces)
-    test_data = VoiceFaceDataset(v_embeds, f_embeds, triplets_test, random_switch_faces)
+    # Create mappings from indices to keys
+    v_index_to_key = {i: key for i, key in enumerate(v_embeds.keys())}
+    f_index_to_key = {i: key for i, key in enumerate(f_embeds.keys())}
+
+    training_data = VoiceFaceDataset(v_embeds, f_embeds, triplets_train, v_index_to_key, f_index_to_key, random_switch_faces)
+    validation_data = VoiceFaceDataset(v_embeds, f_embeds, triplets_val, v_index_to_key, f_index_to_key, random_switch_faces)
+    test_data = VoiceFaceDataset(v_embeds, f_embeds, triplets_test, v_index_to_key, f_index_to_key, random_switch_faces)
 
     train_dataloader = DataLoader(training_data, batch_size=batch_sz, shuffle=True)
     val_dataloader = DataLoader(validation_data, batch_size=batch_sz, shuffle=False)
@@ -261,17 +225,7 @@ def train_and_evaluate(v_embeds, f_embeds, triplets_train, triplets_val, triplet
     return best_fnm, final_fnm, stats
 
 def count_parameters(model):
-    """
-    Count the number of learnable parameters in a PyTorch model.
-
-    Parameters:
-        model (nn.Module): The model whose parameters are to be counted.
-
-    Returns:
-        int: Total number of learnable parameters in the model.
-    """
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
-
 
 if __name__ == "__main__":
     # Execute training and evaluation
@@ -286,8 +240,8 @@ if __name__ == "__main__":
     best_fnm, final_fnm, stats = train_and_evaluate(v_embeds, f_embeds, triplets_train, triplets_val, triplets_test, results_folder, num_epochs)
 
     model = VoiceFaceTripletsClassifier(input_sz_voice=192, input_sz_face=512, cfg={
-    'input_layer_size': 256, 
-    'dropout': 0.5
+        'input_layer_size': 256, 
+        'dropout': 0.5
     })
     total_params = count_parameters(model)
     print(f"Total learnable parameters: {total_params}")

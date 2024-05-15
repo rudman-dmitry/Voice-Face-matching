@@ -20,7 +20,13 @@ This project develops a system that matches voice embeddings with corresponding 
     cd voice-face-matching
     ```
 
-2. **Download the data**:
+2. **Build the Docker image**:
+
+    ```bash
+    docker build -t voice-face-matching:latest .
+    ```
+
+3. **Download the data**:
 
     Run the following command to download and unzip the data:
 
@@ -28,7 +34,7 @@ This project develops a system that matches voice embeddings with corresponding 
     python download_data.py
     ```
 
-3. **Prepare the data**:
+4. **Prepare the data**:
 
     Run the following command to prepare the data:
 
@@ -36,23 +42,29 @@ This project develops a system that matches voice embeddings with corresponding 
     python prepare_data.py
     ```
 
-4. **Build the Docker image**:
-
-    ```bash
-    docker build -t voice-face-matching:latest .
-    ```
-
 5. **Run the Docker container**:
 
     ```bash
-    docker run -p 8888:8888 -v $(pwd):/app -it voice-face-matching:latest
+    docker run -v $(pwd):/app -it voice-face-matching:latest
     ```
 
-    This command maps port 8888 of the Docker container to port 8888 on your host machine and mounts the current directory into the container at `/app`.
+    This command mounts the current directory into the container at `/app` and starts an interactive terminal session.
 
-6. **Access Jupyter Notebook**:
+6. **Train the Model**:
 
-    Open your web browser and navigate to the URL provided in the terminal to access Jupyter Notebook.
+    Inside the Docker container, run the following command to train the model:
+
+    ```bash
+    python train_VFTC_model.py
+    ```
+
+7. **Test the Model**:
+
+    Inside the Docker container, run the following command to test the model:
+
+    ```bash
+    python test_VFTC.py
+    ```
 
 ## Project Structure
 

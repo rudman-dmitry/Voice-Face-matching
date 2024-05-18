@@ -59,6 +59,7 @@ This project develops a system that matches voice embeddings with corresponding 
 - `download_data.py`: Script to download and unzip the dataset.
 - `prepare_data.py`: Script to prepare the data for training.
 - `dataset.py`: Custom dataset class for handling voice and face embeddings.
+- `ranked_list.py`: Utilizes the trained CLIP model weights to produce a ranked list of faces based on similarity score.
 - `train_CLIP_model.py`: Training script for the CLIP model.
 - `train_VFTC_model.py`: Training script for the VoiceFaceTripletsClassifier model.
 - `test_CLIP.py`: Testing script for the CLIP model.

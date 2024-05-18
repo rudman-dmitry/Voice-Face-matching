@@ -148,6 +148,10 @@ def main() -> None:
     audio_df['split'] = audio_df['name'].apply(lambda name: 'train' if name in train_names else ('val' if name in val_names else 'test'))
     image_df['split'] = image_df['name'].apply(lambda name: 'train' if name in train_names else ('val' if name in val_names else 'test'))
 
+        # Save the DataFrames with splits
+    audio_df.to_pickle('triplet_data/audio_df_with_splits.pickle')
+    image_df.to_pickle('triplet_data/image_df_with_splits.pickle')
+
     # Generate triplets and save them
     output_dir = 'triplet_data'
     os.makedirs(output_dir, exist_ok=True)

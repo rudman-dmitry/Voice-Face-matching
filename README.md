@@ -2,7 +2,11 @@
 
 ## Overview
 
-This project develops a system that matches voice embeddings with corresponding face embeddings. It leverages a neural network model to determine the likelihood of a voice matching one of two faces.
+This project develops a system to match voice embeddings with corresponding face embeddings using two different models:
+
+1. **Voice-Face-Triplet-Classifier (VFTC)**: This model implements the static approach described in the paper ["Seeing Voices and Hearing Faces"](https://arxiv.org/pdf/1804.00326). It uses triplet loss to train the network to distinguish between matching and non-matching voice-face pairs.
+
+2. **CLIP Adaptation for Voice-Face Matching**: This model adapts the Contrastive Language-Image Pre-Training (CLIP) framework for the voice-face matching task, leveraging its robust multimodal capabilities. The approach is based on techniques described in the paper ["Learning Transferable Visual Models From Natural Language Supervision"](https://doi.org/10.48550/arXiv.2103.00020).
 
 ## Setup
 
@@ -45,26 +49,86 @@ This project develops a system that matches voice embeddings with corresponding 
 5. **Run the Docker container**:
 
     ```bash
-    docker run -v $(pwd):/app -it voice-face-matching:latest
+    docker run -v $(pwd):/app -it --name voice-face-matching-container voice-face-matching:latest
     ```
 
     This command mounts the current directory into the container at `/app` and starts an interactive terminal session.
 
-6. **Train the Model**:
+6. **Run the scripts inside the Docker container**:
 
-    Inside the Docker container, run the following command to train the model:
+    Use the following commands to run the necessary scripts inside the Docker container. These commands assume you have an active terminal session within the container.
+
+    - **Prepare the Data**:
+        ```bash
+        python /app/prepare_data.py
+        ```
+
+    - **Train the Voice-Face Triplets Classifier Model**:
+        ```bash
+        python /app/train_VFTC_model.py
+        ```
+
+    - **Test the Voice-Face Triplets Classifier Model**:
+        ```bash
+        python /app/test_VFTC.py
+        ```
+
+    - **Train the CLIP Model**:
+        ```bash
+        python /app/train_CLIP_model.py
+        ```
+
+    - **Test the CLIP Model**:
+        ```bash
+        python /app/test_CLIP.py
+        ```
+
+    - **Generate Ranked List of Faces**:
+        ```bash
+        python /app/ranked_list.py
+        ```
+
+### Alternative Method: Running Commands Directly in the Container
+
+If you prefer not to keep an interactive terminal session open, you can use `docker exec` to run commands in the container after it is started.
+
+1. **Start the Docker container in detached mode**:
 
     ```bash
-    python train_VFTC_model.py
+    docker run -v $(pwd):/app -d --name voice-face-matching-container voice-face-matching:latest
     ```
 
-7. **Test the Model**:
+2. **Run the scripts using `docker exec`**:
 
-    Inside the Docker container, run the following command to test the model:
+    - **Prepare the Data**:
+        ```bash
+        docker exec -it voice-face-matching-container python /app/prepare_data.py
+        ```
 
-    ```bash
-    python test_VFTC.py
-    ```
+    - **Train the Voice-Face Triplets Classifier Model**:
+        ```bash
+        docker exec -it voice-face-matching-container python /app/train_VFTC_model.py
+        ```
+
+    - **Test the Voice-Face Triplets Classifier Model**:
+        ```bash
+        docker exec -it voice-face-matching-container python /app/test_VFTC.py
+        ```
+
+    - **Train the CLIP Model**:
+        ```bash
+        docker exec -it voice-face-matching-container python /app/train_CLIP_model.py
+        ```
+
+    - **Test the CLIP Model**:
+        ```bash
+        docker exec -it voice-face-matching-container python /app/test_CLIP.py
+        ```
+
+    - **Generate Ranked List of Faces**:
+        ```bash
+        docker exec -it voice-face-matching-container python /app/ranked_list.py
+        ```
 
 ## Project Structure
 

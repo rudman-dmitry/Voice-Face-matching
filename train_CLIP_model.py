@@ -231,7 +231,7 @@ def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 if __name__ == "__main__":
-    num_epochs = 1000
+    num_epochs = 5
     train_model(f_embeds, v_embeds, triplets_train, triplets_val, num_epochs)
     evaluate_model(f_embeds, v_embeds, triplets_test, v_index_to_key, f_index_to_key)
 

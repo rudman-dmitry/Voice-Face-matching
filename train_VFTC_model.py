@@ -112,6 +112,32 @@ def eval_model(model, loss_fn, dataloader, use_cuda):
     return loss, acc
 
 # Function to plot training stats
+def plot_training_stats(stats, results_folder):
+    plt.figure(figsize=(12, 8))
+    
+    # Plot training and validation loss
+    plt.subplot(2, 1, 1)
+    plt.plot(stats['train_loss'], label='Training Loss')
+    plt.plot(stats['val_loss'], label='Validation Loss')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.title('Training and Validation Loss')
+    plt.legend()
+
+    # Plot validation accuracy
+    plt.subplot(2, 1, 2)
+    plt.plot(stats['val_acc'], label='Validation Accuracy')
+    plt.xlabel('Epoch')
+    plt.ylabel('Accuracy')
+    plt.title(f'Validation Accuracy: {stats["val_acc"][-1]:.3f}')
+    plt.legend()
+
+    plt.tight_layout()
+    plot_file = os.path.join(results_folder, 'training_stats.png')
+    plt.savefig(plot_file)
+    print(f'Training plot saved to {plot_file}')
+
+# Function to plot training stats
 def train_and_evaluate(v_embeds, f_embeds, triplets_train, triplets_val, triplets_test, results_folder, num_epochs):
     print(f'Saving results to folder: {results_folder}')
     if not os.path.isdir(results_folder):
@@ -220,7 +246,7 @@ def train_and_evaluate(v_embeds, f_embeds, triplets_train, triplets_val, triplet
     print(f'Best model  (test set):       loss {test_loss_best:.3f} acc {test_acc_best:.3f}')
 
     # Plot training statistics
-    plot_training_stats(stats, 'VFMR_results')
+    plot_training_stats(stats, 'trained_VFTC_model')
 
     return best_fnm, final_fnm, stats
 
